@@ -17,11 +17,12 @@ use Illuminate\Http\Request;
 use App\Contracts\SMSInterface;
 ///use Twilio\Rest\Client;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Log;
 
 
 class TwillioSms implements SMSInterface
 {
-	private $client,$verify;
+	private $client,$verify,$guzzleClient;
 
 	
 
@@ -32,9 +33,9 @@ class TwillioSms implements SMSInterface
      */
 	public function initialize()
 	{
-		//$this->client = new Client(api_credentials('sid','Twillo'), api_credentials('token','Twillo'));
-        $this->client = new Client(['base_uri' => 'http://91.204.239.44/broker-api']);
-		//$this->verify = $this->client->verify->v2->services(api_credentials('service_sid','Twillo'));
+		$this->client = new Client(api_credentials('sid','Twillo'), api_credentials('token','Twillo'));
+        $this->guzzleClient = new Client(['base_uri' => 'http://91.204.239.44/broker-api/']);
+		$this->verify = $this->client->verify->v2->services(api_credentials('service_sid','Twillo'));
 
 	}
 
@@ -105,25 +106,45 @@ class TwillioSms implements SMSInterface
      */
 	public function SendTextMessage($to,$text)
 	{
+
+        $data = json_encode([
+            'messages' => [
+                [
+                    'recipient' => $to,
+                    'message-id' => "abc000000001",
+                    'sms' => [
+                        'originator' => '3700',
+                        'content' => [
+                            'text' => $text
+                        ]
+                    ]
+                ]
+
+            ]
+        ]);
+
 		try {
-			// Use the client to do fun stuff like send text messages!
-			$this->client->messages->create(
-			    // the number you'd like to send the message to
-			    $to,
-			    [
-			        // A Twilio phone number you purchased at twilio.com/console
-			        'from' => api_credentials('from','Twillo'),
-			        // the body of the text message you'd like to send
-			        'body' => $text
-			    ]
-			);
+
+            $guzzleClient = new Client(['base_uri' => 'http://91.204.239.44/broker-api/']);
+
+            $requestAPI = $guzzleClient->post('send', [
+                'headers' => ['Content-Type' => 'application/json', 'Authorization' => 'Basic '.base64_encode('ttt_tmp:d(VJ;d#Be857')],
+                'body' => $data
+            ]);
+
+            dd(json_decode($requestAPI->getBody()));
+
 			return array('status_code' => 1,'message'=>'Success','status'=>true);
 		}
 
 		catch(\Exception $e) {
+            Log::stack(['single'])->info($e->getCode(), [$e->getMessage(), $data]);
 			return array('status_code' => 0,'message'=>$e->getMessage(),'status'=>false);
 		}
 		return array('status_code' => 1,'message'=>'Success','status'=>true);
 
 	}
 }
+
+//{"messages":[{"recipient":"998901679102","message-id":"abc000000002","sms":{"originator": "3700","content":{"text":"test"}}}]}
+//{"messages":[{"recipient":"998901679102","message-id":"abc000000001","sms":{"originator": "3700","content": {"text": "Test message"}}}]}
