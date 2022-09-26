@@ -711,7 +711,7 @@ class InvoiceHelper
 	 * @param String $currency
 	 * @return Array $owe_data
 	 */
-	public function oweAmount($driver_payout, $driver_id, $trip_id,$save=0,$currency_code)
+	public function oweAmount($driver_payout, $driver_id, $trip_id, $currency_code, $save=0)
 	{ 
 		$current_trip = Trips::where('id', $trip_id)->first();
 	  	// deduction

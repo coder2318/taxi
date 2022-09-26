@@ -404,22 +404,7 @@ class User extends Authenticatable implements JWTSubject
         }
     }
 
-    /**
-     * Get Currency code
-     * 
-     */
-  /*  public function getCurrencyAttribute()
-    {
-        $currency_code = $this->attributes['currency_code'];
-        $currency = Currency::where('code', $currency_code)->first();
-        if($currency == '') {
-            $currency = Currency::defaultCurrency()->first();
-            User::where('id', $this->attributes['id'])->update(['currency_code' => $currency->code]);
-        }
-        return $currency;
-    }*/
-
-        /**
+     /**
      * Get Session or Default Currency code
      *
      */
@@ -738,5 +723,11 @@ class User extends Authenticatable implements JWTSubject
     public function country()
     {
         return $this->belongsTo('App\Models\Country','country_id','id');
+    }
+
+    public static function getByPhoneNumber($phone_code, $mobile_number){
+        return User::where('mobile_number', $mobile_number)
+            ->where('country_code', $phone_code)
+            ->firstOrFail();
     }
 }

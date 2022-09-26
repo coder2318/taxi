@@ -21,7 +21,7 @@ class OtpHelper
 	 * @param integer $mobile_number
 	 * @return Array $response
 	 */
-	public function sendOtp($mobile_number,$country_code)
+	public function sendOtp($country_code, $mobile_number)
 	{		
 		if(canDisplayCredentials() || !site_settings('otp_verification')){
 			$response = [
@@ -30,24 +30,21 @@ class OtpHelper
 				'signup_otp' => "1244",
 			];
 
-		}
-		else{
-	        $to = '+'.$country_code.$mobile_number;
+		}else{
 	        $sms_gateway = resolve("App\Contracts\SMSInterface");
-	        $response = $sms_gateway->send($to);
+	        $response = $sms_gateway->sendOTP($country_code, $mobile_number);
     	}
 
-    	 if($response['status_code']==1) 
-	        {
-	        	session([
-					'signup_mobile' => $mobile_number,
-					'signup_country_code' => $country_code,
-					'signup_otp' => canDisplayCredentials() ? "1244":'',
-				]);
-	        }
+    	if($response['status_code']==1)
+        {
+            session([
+                'signup_mobile' => $mobile_number,
+                'signup_country_code' => $country_code,
+                'signup_otp' => canDisplayCredentials() ? "1244":'',
+            ]);
+        }
 	        
-
-        	return $response;
+        return $response;
     
     }
 	
@@ -104,4 +101,19 @@ class OtpHelper
 	        return  $sms_gateway->send('+'.$country_code.$mobile_number,'',$otp);
     	}
 	}
+
+	public function sendText($country_code, $mobile_number){
+        $to = '+'.$country_code.$mobile_number;
+        $sms_gateway = resolve("App\Contracts\SMSInterface");
+        $response = $sms_gateway->SendTextMessage($to, 'testnew');
+        if($response)
+            return  [
+                'status_code' => 1,
+                'message' => 'success',
+            ];
+            return  [
+                'status_code' => 0,
+                'message' => 'error',
+            ];
+    }
 }

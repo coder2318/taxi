@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateUserConfirmationCodesTable extends Migration
+class CreateConfirmationCodesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,16 @@ class CreateUserConfirmationCodesTable extends Migration
      */
     public function up()
     {
-        Schema::dropIfExists('user_confirmation_codes');
-        Schema::create('user_confirmation_codes', function (Blueprint $table) {
+        Schema::dropIfExists('confirmation_codes');
+        Schema::create('confirmation_codes', function (Blueprint $table) {
             $table->id();
-            $table->string('text');
-            $table->smallInteger('type');
+            $table->string('code');
+            $table->smallInteger('type')->nullable();
+            $table->smallInteger('recipient_type')->nullable();
             $table->unsignedInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
             $table->smallInteger('number_of_attempts')->default(0);
-            $table->smallInteger('number of attempts');
+            $table->timestamps();
         });
     }
 
@@ -32,6 +33,6 @@ class CreateUserConfirmationCodesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user_confirmation_codes');
+        Schema::dropIfExists('confirmation_codes');
     }
 }

@@ -293,7 +293,7 @@ class AppServiceProvider extends ServiceProvider
 		}
 
 		$this->app->bind('App\Contracts\ImageHandlerInterface','App\Services\LocalImageHandler');
-		$this->app->bind('App\Contracts\SMSInterface','App\Services\SMS\TwillioSms');
+		$this->app->bind('App\Contracts\SMSInterface','App\Services\SMS\SMS');
 	}
 
 	protected function shareCommonData()

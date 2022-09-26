@@ -43,8 +43,8 @@
         "tymon/jwt-auth": "dev-develop",
         "web-token/jwt-framework": "^2.1",
         "yajra/laravel-datatables": "^1.5",
-        "twilio/sdk": "^6.20"
-
+        "twilio/sdk": "^6.20",
+        "ext-json": "*"
     },
     "require-dev": {
         "facade/ignition": "^2.0",

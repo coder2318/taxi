@@ -120,5 +120,10 @@ class Country extends Model
         );
         return $payout_countries;
     }
+
+    public static function getPhoneCodeByShortName($shortCode){
+        $country = Country::where('short_name', $shortCode)->firstOrFail();
+        return $country->phone_code;
+    }
 }
 

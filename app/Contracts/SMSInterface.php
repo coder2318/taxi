@@ -17,4 +17,5 @@ interface SMSInterface
 {
 	function initialize();
 	function send($to,$text);
+	function sendOTP($to,$text);
 }

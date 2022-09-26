@@ -14,6 +14,7 @@
 namespace App\Http\Controllers\Api;
  
 use App\Http\Controllers\Controller;
+use App\Http\Helper\OtpHelper;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\ProfilePicture;
@@ -57,8 +58,8 @@ class TokenAuthController extends Controller
      */
     protected function getUserDetails($user)
     {
-        $invoice_helper = resolve('App\Http\Helper\InvoiceHelper');
-        $promo_details = $invoice_helper->getUserPromoDetails($user->id);
+//        $invoice_helper = resolve('App\Http\Helper\InvoiceHelper');
+//        $promo_details = $invoice_helper->getUserPromoDetails($user->id);
 
         $user_data = array(
             'user_id'           => $user->id,
@@ -128,11 +129,6 @@ class TokenAuthController extends Controller
     public function register(Request $request) 
     {
 
-        $otp = new App\Http\Helper\OtpHelper;
-        $sms_responce = $otp->sendOtp($request->mobile_number, $phone_code);
-
-
-
         $language = $request->language ?? 'en';
         App::setLocale($language);
 
@@ -161,7 +157,7 @@ class TokenAuthController extends Controller
             $return_data = array(
                 'status_code'       => '1',
                 'status_message'    => __('messages.user.register_successfully'),
-                'access_token'      => $token,
+             //   'access_token'      => $token,
             );
         }
 

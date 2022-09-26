@@ -13,14 +13,14 @@
 
 namespace App\Services\SMS;
 
-use Illuminate\Http\Request;
 use App\Contracts\SMSInterface;
-///use Twilio\Rest\Client;
+use App\Models\ConfirmationCode;
+use App\Models\Country;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 
 
-class TwillioSms implements SMSInterface
+class SMS implements SMSInterface
 {
 	private $client,$verify,$guzzleClient;
 
@@ -33,9 +33,7 @@ class TwillioSms implements SMSInterface
      */
 	public function initialize()
 	{
-		$this->client = new Client(api_credentials('sid','Twillo'), api_credentials('token','Twillo'));
         $this->guzzleClient = new Client(['base_uri' => 'http://91.204.239.44/broker-api/']);
-		$this->verify = $this->client->verify->v2->services(api_credentials('service_sid','Twillo'));
 
 	}
 
@@ -43,16 +41,28 @@ class TwillioSms implements SMSInterface
      * Send OTP message
      *
      * @param String $phone_number
-     * @return Array SMS Response
+     * @return array
      */
-	protected function sendOTP($phone_number)
+	public function sendOTP($country_code, $mobile_number)
 	{
+        $phone_code = Country::getPhoneCodeByShortName($country_code);
+        $data = ConfirmationCode::generateOTP($phone_code, $mobile_number);
 		try {
-			$data = $this->verify->verifications->create($phone_number, "sms");
-			return array('status_code' => 1,'message'=>'Success','status'=>true);
+
+            $guzzleClient = new Client(['base_uri' => 'http://91.204.239.44/broker-api/']);
+
+            $requestAPI = $guzzleClient->post('send', [
+                'headers' => ['Content-Type' => 'application/json', 'Authorization' => 'Basic '.base64_encode('ttt_tmp:d(VJ;d#Be857')],
+                'body' => $this->smsBody($phone_code.$mobile_number, ConfirmationCode::generateOTP($phone_code, $mobile_number))
+            ]);
+
+//            dd(json_decode($requestAPI->getBody()));
+
+			return ['status_code' => 1,'message'=>'Success','status'=>true];
 		} 
 		catch(\Exception $e) {
-			return array('status_code' => 0,'message'=>$e->getMessage() ,'status'=>false);
+            Log::stack(['single'])->info($e->getCode(), [$e->getMessage(), $data]);
+			return ['status_code' => 0,'message'=>$e->getMessage() ,'status'=>false];
 		}
 	}
 
@@ -97,17 +107,10 @@ class TwillioSms implements SMSInterface
 		}
 		return $result;
 	}
-	/**
-     * Send Text message to mobile
-     *
-     * @param String $[to] user phone number
-     * @param String $[text] [message to be send]
-     * @return Array SMS Response
-     */
-	public function SendTextMessage($to,$text)
-	{
 
-        $data = json_encode([
+
+	public function smsBody($to, $text){
+	    return json_encode([
             'messages' => [
                 [
                     'recipient' => $to,
@@ -122,28 +125,10 @@ class TwillioSms implements SMSInterface
 
             ]
         ]);
+    }
 
-		try {
 
-            $guzzleClient = new Client(['base_uri' => 'http://91.204.239.44/broker-api/']);
 
-            $requestAPI = $guzzleClient->post('send', [
-                'headers' => ['Content-Type' => 'application/json', 'Authorization' => 'Basic '.base64_encode('ttt_tmp:d(VJ;d#Be857')],
-                'body' => $data
-            ]);
-
-            dd(json_decode($requestAPI->getBody()));
-
-			return array('status_code' => 1,'message'=>'Success','status'=>true);
-		}
-
-		catch(\Exception $e) {
-            Log::stack(['single'])->info($e->getCode(), [$e->getMessage(), $data]);
-			return array('status_code' => 0,'message'=>$e->getMessage(),'status'=>false);
-		}
-		return array('status_code' => 1,'message'=>'Success','status'=>true);
-
-	}
 }
 
 //{"messages":[{"recipient":"998901679102","message-id":"abc000000002","sms":{"originator": "3700","content":{"text":"test"}}}]}
