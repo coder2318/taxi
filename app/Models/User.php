@@ -14,7 +14,6 @@
 namespace App\Models;
 
 use Illuminate\Notifications\Notifiable;
-use App\Models\Country;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use DateTime;
 use JWTAuth;
@@ -725,9 +724,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsTo('App\Models\Country','country_id','id');
     }
 
-    public static function getByPhoneNumber($phone_code, $mobile_number){
+    public static function getByPhoneNumber($country_code, $mobile_number){
+        $country = Country::whereShortName($country_code)->first();
+        $country_code = $country->phone_code??null;
         return User::where('mobile_number', $mobile_number)
-            ->where('country_code', $phone_code)
+            ->where('country_code', $country_code)
             ->first();
     }
 }

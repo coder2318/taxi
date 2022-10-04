@@ -149,20 +149,11 @@ class TokenAuthController extends Controller
 
         $user = $auth_service->create($request);
         $request['country_id'] = $user->country_id;
-//        $credentials = $request->only('mobile_number','country_id', 'password','user_type');
-        
-//        if($request->auth_type=='email') {
-//            $return_data = $auth_service->login($credentials);
-//        } else {
-            $return_data = array(
-                'status_code'       => '1',
-                'status_message'    => __('messages.user.register_successfully'),
-            );
-//        }
 
-//        if(!isset($return_data['status_code'])) {
-//            return $return_data;
-//        }
+        $return_data = array(
+            'status_code'       => '1',
+            'status_message'    => __('messages.user.register_successfully'),
+        );
 
         $user_data = $this->getUserDetails($user);
 
@@ -246,7 +237,7 @@ class TokenAuthController extends Controller
         }
 
         $otp = new App\Http\Helper\OtpHelper;
-        $otp->sendOtp($user->country_code, $request->mobile_number);
+        $otp->sendOtp($request->country_code, $request->mobile_number);
 
         return response()->json(array_merge($return_data,$user_data));
     }
@@ -697,27 +688,7 @@ class TokenAuthController extends Controller
             ]);
         }
 
-        $otp_value = rand(1000,9999);
-        // $text = __('messages.api.your_otp_is').$otp;
-        $phone_code = Country::whereShortName($request->country_code)->value('phone_code');
-        $to = '+'.$phone_code.$request->mobile_number;
 
-        $otp = new App\Http\Helper\OtpHelper;
-        $sms_responce = $otp->sendOtp($request->mobile_number,$phone_code);
-
-        if($sms_responce['status_code'] == 0) {
-            return response()->json([
-                'status_message' => $sms_responce['message'],
-                'status_code' => '0',
-                'otp' => '',
-            ]);
-        }
-
-        return response()->json([
-            'status_code'    => '1',
-            'status_message' => 'Success',
-            'otp'           => canDisplayCredentials() ? strval($otp_value):'',
-        ]);
     }
 
 
