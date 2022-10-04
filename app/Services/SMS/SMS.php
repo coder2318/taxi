@@ -41,28 +41,24 @@ class SMS implements SMSInterface
      * Send OTP message
      *
      * @param String $phone_number
-     * @return array
+     * @return bool
      */
 	public function sendOTP($country_code, $mobile_number)
 	{
-        $phone_code = Country::getPhoneCodeByShortName($country_code);
-        $data = ConfirmationCode::generateOTP($phone_code, $mobile_number);
+        $data = ConfirmationCode::generateOTP($country_code, $mobile_number);
 		try {
 
             $guzzleClient = new Client(['base_uri' => 'http://91.204.239.44/broker-api/']);
 
             $requestAPI = $guzzleClient->post('send', [
                 'headers' => ['Content-Type' => 'application/json', 'Authorization' => 'Basic '.base64_encode('ttt_tmp:d(VJ;d#Be857')],
-                'body' => $this->smsBody($phone_code.$mobile_number, ConfirmationCode::generateOTP($phone_code, $mobile_number))
+                'body' => $this->smsBody($country_code.$mobile_number, $data)
             ]);
-
-//            dd(json_decode($requestAPI->getBody()));
-
-			return ['status_code' => 1,'message'=>'Success','status'=>true];
-		} 
+            return ($requestAPI->getStatusCode() == 200);
+		}
 		catch(\Exception $e) {
             Log::stack(['single'])->info($e->getCode(), [$e->getMessage(), $data]);
-			return ['status_code' => 0,'message'=>$e->getMessage() ,'status'=>false];
+			return false;
 		}
 	}
 
@@ -72,7 +68,7 @@ class SMS implements SMSInterface
      * @param String $phone_number, String $verification_code
      * @return Array SMS Response
      */
-	protected function verifyOTP($phone_number, $verification_code)
+	public function verifyOTP($code, $phone_number)
 	{
 		try {
 
@@ -80,33 +76,33 @@ class SMS implements SMSInterface
 
 			if($verification->valid)
 				return array('status_code' => 1,'message'=>'Success','status'=>true);
-			else 
+			else
 				return array('status_code' => 0,'message'=>__('messages.signup.wrong_otp'),'status'=>false);
-		} 
+		}
 		catch(\Exception $e) {
 			return array('status_code' => 0,'message'=>__('messages.signup.wrong_otp'),'status'=>false);
 		}
 	}
 
-	/**
-     * Send Text message to mobile
-     *
-     * @param String $phone_number, String $verification_code
-     * @return Array SMS Response
-     */
-	public function send($phone_number, $text='',$verification_code=false)
-	{
-		$this->initialize();
-		if($text){
-			$result = $this->SendTextMessage($phone_number,$text);
-		}
-		else if($verification_code) {
-			$result = $this->verifyOTP($phone_number, $verification_code);
-		} else {
-			$result = $this->sendOTP($phone_number);
-		}
-		return $result;
-	}
+//	/**
+//     * Send Text message to mobile
+//     *
+//     * @param String $phone_number, String $verification_code
+//     * @return Array SMS Response
+//     */
+//	public function send($phone_number, $text='',$verification_code=false)
+//	{
+//		$this->initialize();
+//		if($text){
+//			$result = $this->SendTextMessage($phone_number,$text);
+//		}
+//		else if($verification_code) {
+//			$result = $this->verifyOTP($phone_number, $verification_code);
+//		} else {
+//			$result = $this->sendOTP($phone_number);
+//		}
+//		return $result;
+//	}
 
 
 	public function smsBody($to, $text){

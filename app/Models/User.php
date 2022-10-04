@@ -728,6 +728,6 @@ class User extends Authenticatable implements JWTSubject
     public static function getByPhoneNumber($phone_code, $mobile_number){
         return User::where('mobile_number', $mobile_number)
             ->where('country_code', $phone_code)
-            ->firstOrFail();
+            ->first();
     }
 }

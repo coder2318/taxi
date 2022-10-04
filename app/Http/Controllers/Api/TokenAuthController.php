@@ -15,6 +15,8 @@ namespace App\Http\Controllers\Api;
  
 use App\Http\Controllers\Controller;
 use App\Http\Helper\OtpHelper;
+use App\Http\Requests\OTPVerificationRequest;
+use App\Models\ConfirmationCode;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\ProfilePicture;
@@ -147,23 +149,20 @@ class TokenAuthController extends Controller
 
         $user = $auth_service->create($request);
         $request['country_id'] = $user->country_id;
-        $credentials = $request->only('mobile_number','country_id', 'password','user_type');
+//        $credentials = $request->only('mobile_number','country_id', 'password','user_type');
         
-        if($request->auth_type=='email') {
-            $return_data = $auth_service->login($credentials);
-        } else {
-            $token = JWTAuth::fromUser($user);
-
+//        if($request->auth_type=='email') {
+//            $return_data = $auth_service->login($credentials);
+//        } else {
             $return_data = array(
                 'status_code'       => '1',
                 'status_message'    => __('messages.user.register_successfully'),
-             //   'access_token'      => $token,
             );
-        }
+//        }
 
-        if(!isset($return_data['status_code'])) {
-            return $return_data;
-        }
+//        if(!isset($return_data['status_code'])) {
+//            return $return_data;
+//        }
 
         $user_data = $this->getUserDetails($user);
 
@@ -242,9 +241,12 @@ class TokenAuthController extends Controller
                 }
             }
 
-            $user->status = 'Active';
+            $user->status = 0;
             $user->save();
         }
+
+        $otp = new App\Http\Helper\OtpHelper;
+        $otp->sendOtp($user->country_code, $request->mobile_number);
 
         return response()->json(array_merge($return_data,$user_data));
     }
@@ -719,13 +721,40 @@ class TokenAuthController extends Controller
     }
 
 
-    public function otp_verification()
+    public function otp_verification(Request $request)
     {
-        $otp = new App\Http\Helper\OtpHelper;
-        $response = $otp->checkOtp(request()->otp,request()->mobile_number,request()->country_code);
-        $response['status_message'] = $response['message'];
-        $response['status_code'] = strval($response['status_code']);
-        return $response;
+        $rules = [
+            'country_code' => 'required',
+            'mobile_number' => 'required',
+            'code' => 'required',
+            'type' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if($validator->fails()) {
+            return response()->json([
+                'status_code' => '0',
+                'status_message' => $validator->messages()->first()
+            ]);
+        }
+
+        $confirmed =  ConfirmationCode::checkOTP($request);
+        $user = User::getByPhoneNumber($request->country_code, $request->mobile_number);
+
+        if($confirmed && $user){
+            $user->status = 1;
+            $user->save();
+            return response()->json([
+                'status_code'    => '1',
+                'status_message' => 'Success',
+            ]);
+        }
+
+        return response()->json([
+            'status_code'    => '0',
+            'status_message' => __('messages.signup.wrong_otp')
+        ]);
+
     }
 
     /**

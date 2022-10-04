@@ -139,7 +139,7 @@ class AuthViaEmail implements AuthInterface
 		$user->country_id 	= $country->id;
 
 		if(strtolower($request->user_type) =='rider') {
-		    $user->status = "Active";
+		    $user->status = 0;
 		    $user->save();                  
 		}
 		else {

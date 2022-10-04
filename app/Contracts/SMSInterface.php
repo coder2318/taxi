@@ -16,6 +16,7 @@ namespace App\Contracts;
 interface SMSInterface
 {
 	function initialize();
-	function send($to,$text);
-	function sendOTP($to,$text);
+//	function send($to,$text);
+	function sendOTP($country_code, $mobile_number);
+	function verifyOTP($code,$number);
 }

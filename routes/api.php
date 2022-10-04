@@ -24,18 +24,19 @@ Route::match(['get', 'post'], 'paypal_payout', 'CronController@updatePaypalPayou
 Route::get('check_version', 'RiderController@check_version');
 
 //TokenAuthController
-Route::get('register', 'TokenAuthController@register');
+Route::post('register', 'TokenAuthController@register');
 Route::get('socialsignup', 'TokenAuthController@socialsignup');
 Route::match(array('GET', 'POST'),'apple_callback', 'TokenAuthController@apple_callback');
 
 Route::get('login', 'TokenAuthController@login');
-Route::get('otp_verification', 'TokenAuthController@otp_verification');
+Route::post('otp_verification', 'TokenAuthController@otp_verification');
 Route::get('numbervalidation', 'TokenAuthController@numbervalidation');
 Route::get('emailvalidation', 'TokenAuthController@emailvalidation');
 Route::get('forgotpassword', 'TokenAuthController@forgotpassword');
 
 Route::get('language_list', 'TokenAuthController@language_list');
 Route::get('currency_list', 'TokenAuthController@currency_list');
+
 
 // With Login Routes
 Route::group(['middleware' => 'jwt.verify'], function () {
