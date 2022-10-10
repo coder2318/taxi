@@ -9,21 +9,12 @@ use Illuminate\Database\Eloquent\Model;
 class ConfirmationCode extends Model
 {
     const TYPE_REGISTRATION = 1;
+    const TYPE_LOGIN = 2;
 
     protected $fillable = ['user_id', 'code', 'type'];
 
-    public static function generateOTP($phoneCode, $mobile_number){
-        $otp =  rand(100000, 999999);
-        $user = User::getByPhoneNumber($phoneCode, $mobile_number);
-        ConfirmationCode::updateOrCreate([
-            'user_id' => $user->id,
-            'type' => self::TYPE_REGISTRATION
-        ],[
-            'user_id' => $user->id,
-            'code' => $otp,
-            'type' => self::TYPE_REGISTRATION
-        ]);
-        return $otp;
+    public static function generateOTP(){
+        return rand(100000, 999999);
     }
 
     public static function checkOTP($request){

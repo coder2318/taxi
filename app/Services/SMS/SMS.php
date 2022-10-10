@@ -16,6 +16,7 @@ namespace App\Services\SMS;
 use App\Contracts\SMSInterface;
 use App\Models\ConfirmationCode;
 use App\Models\Country;
+use App\Models\User;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 
@@ -43,21 +44,34 @@ class SMS implements SMSInterface
      * @param String $phone_number
      * @return bool
      */
-	public function sendOTP($country_code, $mobile_number)
+	public function sendOTP($country_code, $mobile_number, $type)
 	{
-        $data = ConfirmationCode::generateOTP($country_code, $mobile_number);
+        $country = Country::whereShortName($country_code)->first();
+
+        $otp = ConfirmationCode::generateOTP();
+
+        $user = User::getByPhoneNumber($country_code, $mobile_number);
+
+        ConfirmationCode::updateOrCreate([
+            'user_id' => $user->id,
+            'type' => $type
+        ],[
+            'user_id' => $user->id,
+            'code' => $otp,
+            'type' => $type
+        ]);
 		try {
 
             $guzzleClient = new Client(['base_uri' => 'http://91.204.239.44/broker-api/']);
 
             $requestAPI = $guzzleClient->post('send', [
                 'headers' => ['Content-Type' => 'application/json', 'Authorization' => 'Basic '.base64_encode('ttt_tmp:d(VJ;d#Be857')],
-                'body' => $this->smsBody($country_code.$mobile_number, $data)
+                'body' => $this->smsBody($country->phone_code.$mobile_number, $otp)
             ]);
             return ($requestAPI->getStatusCode() == 200);
 		}
 		catch(\Exception $e) {
-            Log::stack(['single'])->info($e->getCode(), [$e->getMessage(), $data]);
+            Log::stack(['single'])->info($e->getCode(), [$e->getMessage()]);
 			return false;
 		}
 	}

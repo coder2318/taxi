@@ -237,7 +237,7 @@ class TokenAuthController extends Controller
         }
 
         $otp = new App\Http\Helper\OtpHelper;
-        $otp->sendOtp($request->country_code, $request->mobile_number);
+        $otp->sendOtp($request->country_code, $request->mobile_number, ConfirmationCode::TYPE_REGISTRATION);
 
         return response()->json(array_merge($return_data,$user_data));
     }
@@ -379,11 +379,54 @@ class TokenAuthController extends Controller
         return response()->json(array_merge($return_data,$user_data));
     }
 
+    public function login_first_step(Request $request)
+    {
+        $rules = [
+            'mobile_number' => 'required|regex:/^[0-9]+$/|min:6',
+            'user_type' => 'required|in:Rider,Driver,rider,driver',
+            'country_code' => 'required'
+        ];
+
+        $messages = array(
+            'mobile_number.required' => trans('messages.mobile_num_required'),
+            'mobile_number.exists'   => trans('messages.enter_registered_number'),
+        );
+
+        $validator = Validator::make($request->all(), $rules,$messages);
+
+        if($validator->fails()) {
+            return response()->json([
+                'status_code' => '0',
+                'status_message' => $validator->messages()->first()
+            ]);
+        }
+
+        $user = User::getByPhoneNumber($request->country_code, $request->mobile_number);
+
+        if($user){
+            $otp = new App\Http\Helper\OtpHelper;
+            $sms = $otp->sendOtp($request->country_code, $user->mobile_number, ConfirmationCode::TYPE_LOGIN);
+            if($sms){
+                return response()->json([
+                    'status_message'  => trans('messages.otp_sent_success'),
+                    'status_code'     => '1',
+                ]);
+            }
+
+        }
+        return response()->json([
+            'status_code' => '0',
+            'status_message' => $validator->messages()->first()
+        ]);
+
+    }
+
+
     /**
      * User Login
      * @param  Get method request inputs
      *
-     * @return Response Json 
+     * @return Response Json
      */
     public function login(Request $request)
     {
@@ -397,9 +440,10 @@ class TokenAuthController extends Controller
             'country_code'    =>'required',
             'device_type'     =>'required',
             'device_id'       =>'required',
+            'code'            =>'required',
         );
 
-        $validator = Validator::make($request->all(), $rules); 
+        $validator = Validator::make($request->all(), $rules);
 
         if($validator->fails()) {
             return response()->json([
@@ -677,16 +721,14 @@ class TokenAuthController extends Controller
         if($user->count() && $request->forgotpassword != 1) {
             return response()->json([
                 'status_message'  => trans('messages.mobile_number_exist'),
-                'status_code'     => '0',
+                'status_code'     => '1',
             ]);
         }
 
-        if($user->count() <= 0 && $request->forgotpassword == 1) {
-            return response()->json([
-                'status_message'  => trans('messages.number_does_not_exists'),
-                'status_code'     => '0',
-            ]);
-        }
+        return response()->json([
+            'status_message'  => trans('messages.number_does_not_exists'),
+            'status_code'     => '0'
+        ]);
 
 
     }

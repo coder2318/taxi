@@ -17,6 +17,6 @@ interface SMSInterface
 {
 	function initialize();
 //	function send($to,$text);
-	function sendOTP($country_code, $mobile_number);
+	function sendOTP($country_code, $mobile_number, $type);
 	function verifyOTP($code,$number);
 }

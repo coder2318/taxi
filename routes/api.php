@@ -28,11 +28,12 @@ Route::post('register', 'TokenAuthController@register');
 Route::get('socialsignup', 'TokenAuthController@socialsignup');
 Route::match(array('GET', 'POST'),'apple_callback', 'TokenAuthController@apple_callback');
 
-Route::get('login', 'TokenAuthController@login');
+Route::post('login_first_step', 'TokenAuthController@login_first_step');
+Route::post('login', 'TokenAuthController@login');
 Route::post('otp_verification', 'TokenAuthController@otp_verification');
-Route::get('numbervalidation', 'TokenAuthController@numbervalidation');
-Route::get('emailvalidation', 'TokenAuthController@emailvalidation');
-Route::get('forgotpassword', 'TokenAuthController@forgotpassword');
+Route::post('numbervalidation', 'TokenAuthController@numbervalidation');
+Route::post('emailvalidation', 'TokenAuthController@emailvalidation');
+Route::post('forgotpassword', 'TokenAuthController@forgotpassword');
 
 Route::get('language_list', 'TokenAuthController@language_list');
 Route::get('currency_list', 'TokenAuthController@currency_list');

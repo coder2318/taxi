@@ -19,12 +19,13 @@ class OtpHelper
 	 *
 	 * @param integer $country_code
 	 * @param integer $mobile_number
+	 * @param integer $type
 	 * @return Array $response
 	 */
-	public function sendOtp($country_code, $mobile_number)
+	public function sendOtp($country_code, $mobile_number, $type)
 	{
         $sms_gateway = resolve("App\Contracts\SMSInterface");
-        return $sms_gateway->sendOTP($country_code, $mobile_number);
+        return $sms_gateway->sendOTP($country_code, $mobile_number, $type);
     }
 
 
