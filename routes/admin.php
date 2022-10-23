@@ -11,6 +11,7 @@
 |
 */
 
+Route::resource('admin/language-line', 'LanguageLineController');
 Route::get('facke_user/{count}/{user_type}', 'BulKUserController@createUser');
 Route::get('add_trip_details','BulKUserController@tripDetails');
 Route::get('company_details/{count}','BulKUserController@companyDetails');
